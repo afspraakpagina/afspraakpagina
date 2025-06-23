@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Afspraak Keuze Bewoner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    button { margin: 5px; }
+    #reader { width: 300px; margin-top: 20px; }
+    #datumKeuze button { display: block; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h2>Welkom bewoner</h2>
+
+  <label for="houseNumber">Huisnummer:</label>
+  <input type="text" id="houseNumber" readonly placeholder="Scan QR-code"><br>
+  <button onclick="startScanner()">📷 Scan QR-code</button>
+  <div id="reader" style="display:none;"></div>
+
+  <hr>
+
+  <button onclick="kiesActie('afspraak')">✅ Afspraak maken</button>
+  <button onclick="kiesActie('weigeren')">❌ Ik geef geen toestemming</button>
+
+  <div id="resultaat"></div>
+
+  <div id="datumKeuze" style="display:none;"></div>
+
+  <div id="redenKeuze" style="display:none;">
+    <label>Waarom geen toestemming?</label>
+    <select id="redenSelect">
+      <option value="Niet beschikbaar">Niet beschikbaar</option>
+      <option value="Geen interesse">Geen interesse</option>
+      <option value="Overleg nodig">Overleg nodig</option>
+    </select>
+    <button onclick="submitReden()">Verstuur reden</button>
+  </div>
+
+  <script>
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbyxql6pymzxryjXCcQ6Yw-2CodjcsHdfd3S1oi8fMPy/dev"; // <- Vervang dit met jouw URL
+
+    function startScanner() {
+      const readerDiv = document.getElementById("reader");
+      readerDiv.style.display = "block";
+
+      const html5QrCode = new Html5Qrcode("reader");
+      const config = { fps: 10, qrbox: 250 };
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText) => {
+          document.getElementById("houseNumber").value = decodedText;
+          html5QrCode.stop();
+          readerDiv.style.display = "none";
+        },
+        (errorMessage) => {
+          console.log("Scan fout:", errorMessage);
+        }
+      ).catch(err => {
+        console.error("Camera start fout:", err);
+        alert("Kan camera niet starten. Probeer opnieuw.");
+      });
+    }
+
+    function kiesActie(type) {
+      const huisnummer = document.getElementById("houseNumber").value;
+      if (!huisnummer) return alert("Scan eerst je QR-code of voer huisnummer in!");
+
+      if (type === 'afspraak') {
+        fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${huisnummer}`)
+          .then(res => res.json())
+          .then(data => {
+            const div = document.getElementById("datumKeuze");
+            div.innerHTML = "<p>Kies een datum:</p>";
+            data.forEach(datum => {
+              const btn = document.createElement("button");
+              btn.innerText = datum;
+              btn.onclick = () => maakAfspraak(huisnummer, datum);
+              div.appendChild(btn);
+            });
+            div.style.display = "block";
+          });
+      } else {
+        document.getElementById("redenKeuze").style.display = "block";
+      }
+    }
+
+    function maakAfspraak(huisnummer, datum) {
+      fetch(`${scriptUrl}?action=markAppointment&houseNumber=${huisnummer}&selectedDate=${datum}`)
+        .then(res => res.text())
+        .then(msg => {
+          document.getElementById("resultaat").innerText = msg;
+        });
+    }
+
+    function submitReden() {
+      const reden = document.getElementById("redenSelect").value;
+      alert(`Reden geregistreerd: ${reden}`);
+      // Hier kun je eventueel ook de reden naar een sheet loggen met Apps Script
+    }
+  </script>
+</body>
+</html>
+
+
