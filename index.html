@@ -103,14 +103,19 @@
       .catch(() => alert("Fout bij afspraken opslaan."));
   }
 
-  function submitReden() {
-    const reden = document.getElementById("redenSelect").value;
-    alert(`Reden geregistreerd: ${reden}`);
-    fetch(`${scriptUrl}?action=declineAppointment&houseNumber=${encodeURIComponent(huisnummer)}&reason=${encodeURIComponent(reden)}`)
+function submitReden() {
+  const reden = document.getElementById("redenSelect").value;
+  if (!reden) return alert("Kies een reden.");
 
-    document.getElementById("redenKeuze").style.display = "none";
-    document.getElementById("resultaat").innerText = "Reden geregistreerd, bedankt!";
-  }
+  fetch(`${scriptUrl}?action=declineAppointment&houseNumber=${encodeURIComponent(huisnummer)}&reason=${encodeURIComponent(reden)}`)
+    .then(r => r.text())
+    .then(msg => {
+      document.getElementById("redenKeuze").style.display = "none";
+      document.getElementById("resultaat").innerText = msg;
+    })
+    .catch(() => alert("Fout bij versturen reden."));
+}
+
 </script>
 
 </body>
