@@ -106,6 +106,8 @@
   function submitReden() {
     const reden = document.getElementById("redenSelect").value;
     alert(`Reden geregistreerd: ${reden}`);
+    fetch(`${scriptUrl}?action=declineAppointment&houseNumber=${encodeURIComponent(huisnummer)}&reason=${encodeURIComponent(reden)}`)
+
     document.getElementById("redenKeuze").style.display = "none";
     document.getElementById("resultaat").innerText = "Reden geregistreerd, bedankt!";
   }
