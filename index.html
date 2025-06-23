@@ -23,10 +23,11 @@
 
 <!-- in <body> -->
 <div id="afspraakSectie" style="display:none;">
-  <label for="datumSelect">Kies een geplande datum:</label>
-  <select id="datumSelect"></select>
+  <label>Kies één of meer geplande datums:</label>
+  <div id="datumCheckboxes"></div>
   <button onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
 </div>
+
 
 
 
@@ -65,43 +66,48 @@
     }
   }
 
-  function loadAvailableDates() {
-    fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
-      .then(r => r.json())
-      .then(data => {
-        const select = document.getElementById("datumSelect");
-        select.innerHTML = ""; // leegmaken
-        if (data.length === 0) {
-          const opt = document.createElement("option");
-          opt.text = "Geen datums beschikbaar";
-          opt.disabled = true;
-          opt.selected = true;
-          select.appendChild(opt);
-          return;
-        }
-        data.forEach(d => {
-          const opt = document.createElement("option");
-          opt.value = d;
-          opt.text = d;
-          select.appendChild(opt);
-        });
-      })
-      .catch(() => alert("Fout bij ophalen van beschikbare datums."));
-  }
+function loadAvailableDates() {
+  fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
+    .then(r => r.json())
+    .then(data => {
+      const container = document.getElementById("datumCheckboxes");
+      container.innerHTML = ""; // Leegmaken
 
-  function bevestigAfspraak() {
-    const datum = document.getElementById("datumSelect").value;
-    if (!datum) return alert("Kies eerst een datum.");
-    if (!confirm(`Weet je zeker dat je ${datum} wilt kiezen?`)) return;
+      data.forEach(date => {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = date;
+        checkbox.id = `date-${date}`;
 
-    fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDate=${encodeURIComponent(datum)}`)
-      .then(r => r.text())
-      .then(msg => {
-        document.getElementById("resultaat").innerText = msg;
-        document.getElementById("afspraakSectie").style.display = "none";
-      })
-      .catch(() => alert("Fout bij afspraken opslaan."));
-  }
+        const label = document.createElement("label");
+        label.htmlFor = `date-${date}`;
+        label.innerText = date;
+
+        const div = document.createElement("div");
+        div.appendChild(checkbox);
+        div.appendChild(label);
+        container.appendChild(div);
+      });
+    })
+    .catch(() => alert("Fout bij ophalen van datums."));
+}
+
+function bevestigAfspraak() {
+  const checkboxes = document.querySelectorAll("#datumCheckboxes input[type='checkbox']");
+  const gekozen = [...checkboxes].filter(cb => cb.checked).map(cb => cb.value);
+
+  if (gekozen.length === 0) return alert("Kies minstens één datum.");
+  if (!confirm(`Bevestig je deze datums: ${gekozen.join(", ")}?`)) return;
+
+  fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(gekozen.join(","))}`)
+    .then(r => r.text())
+    .then(msg => {
+      document.getElementById("resultaat").innerText = msg;
+      document.getElementById("afspraakSectie").style.display = "none";
+    })
+    .catch(() => alert("Fout bij versturen afspraak."));
+}
+
 
 function submitReden() {
   const reden = document.getElementById("redenSelect").value;
