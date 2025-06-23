@@ -21,11 +21,13 @@
   <button onclick="kiesActie('afspraak')">✅ Afspraak maken</button>
   <button onclick="kiesActie('weigeren')">❌ Ik geef geen toestemming</button>
 
-  <div id="afspraakSectie" style="display:none;">
-    <label for="datumSelect">Kies een datum:</label>
-    <input type="text" id="datumSelect" placeholder="Selecteer een datum" readonly>
-    <button onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
-  </div>
+<!-- vervang afspraakSectie in je HTML hiermee -->
+<div id="afspraakSectie" style="display:none;">
+  <label for="datumSelect">Kies een geplande datum:</label>
+  <select id="datumSelect"></select>
+  <button onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
+</div>
+
 
   <div id="redenKeuze" style="display:none;">
     <label>Waarom geen toestemming?</label>
