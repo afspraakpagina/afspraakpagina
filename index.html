@@ -21,12 +21,13 @@
   <button onclick="kiesActie('afspraak')">✅ Afspraak maken</button>
   <button onclick="kiesActie('weigeren')">❌ Ik geef geen toestemming</button>
 
-<!-- vervang afspraakSectie in je HTML hiermee -->
+<!-- in <body> -->
 <div id="afspraakSectie" style="display:none;">
   <label for="datumSelect">Kies een geplande datum:</label>
   <select id="datumSelect"></select>
   <button onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
 </div>
+
 
 
   <div id="redenKeuze" style="display:none;">
@@ -41,67 +42,75 @@
 
   <div id="resultaat"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script>
-    const scriptUrl = https://script.google.com/macros/s/AKfycbxxwt_AnpmsRW3Mc_FJEAfdEgCfpuGZ83bzAB3hWo4BAkRZQnxmZCJ6kOFs0wu38Q4YsA/exec;
-    let availableDates = [];
+<script>
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbxxwt_AnpmsRW3Mc_FJEAfdEgCfpuGZ83bzAB3hWo4BAkRZQnxmZCJ6kOFs0wu38Q4YsA/exec";
 
-    function getQueryParam(param) {
-      const p = new URLSearchParams(window.location.search);
-      return p.get(param);
+  function getQueryParam(param) {
+    const p = new URLSearchParams(window.location.search);
+    return p.get(param);
+  }
+
+  const huisnummer = getQueryParam("huisnummer");
+  if (huisnummer) document.getElementById("houseNumber").value = huisnummer;
+
+  function kiesActie(type) {
+    document.getElementById("resultaat").innerText = "";
+    if (type === "afspraak") {
+      document.getElementById("afspraakSectie").style.display = "block";
+      document.getElementById("redenKeuze").style.display = "none";
+      loadAvailableDates();
+    } else {
+      document.getElementById("afspraakSectie").style.display = "none";
+      document.getElementById("redenKeuze").style.display = "block";
     }
+  }
 
-    const huisnummer = getQueryParam("huisnummer");
-    if (huisnummer) document.getElementById("houseNumber").value = huisnummer;
+  function loadAvailableDates() {
+    fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
+      .then(r => r.json())
+      .then(data => {
+        const select = document.getElementById("datumSelect");
+        select.innerHTML = ""; // leegmaken
+        if (data.length === 0) {
+          const opt = document.createElement("option");
+          opt.text = "Geen datums beschikbaar";
+          opt.disabled = true;
+          opt.selected = true;
+          select.appendChild(opt);
+          return;
+        }
+        data.forEach(d => {
+          const opt = document.createElement("option");
+          opt.value = d;
+          opt.text = d;
+          select.appendChild(opt);
+        });
+      })
+      .catch(() => alert("Fout bij ophalen van beschikbare datums."));
+  }
 
-    function kiesActie(type) {
-      document.getElementById("resultaat").innerText = "";
-      if (type === "afspraak") {
-        document.getElementById("afspraakSectie").style.display = "block";
-        document.getElementById("redenKeuze").style.display = "none";
-        loadAvailableDates();
-      } else {
-        document.getElementById("afspraakSectie").style.display = "none";
-        document.getElementById("redenKeuze").style.display = "block";
-      }
-    }
+  function bevestigAfspraak() {
+    const datum = document.getElementById("datumSelect").value;
+    if (!datum) return alert("Kies eerst een datum.");
+    if (!confirm(`Weet je zeker dat je ${datum} wilt kiezen?`)) return;
 
-    function loadAvailableDates() {
-      fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
-        .then(r => r.json())
-        .then(data => {
-          availableDates = data.map(dt => dt.split("-")); // ["2025","07","24"]
-          const formatted = availableDates.map(arr => new Date(arr[0], arr[1]-1, arr[2]));
-          flatpickr("#datumSelect", {
-            enable: formatted,
-            dateFormat: "Y-m-d",
-            defaultDate: formatted[0] || null
-          });
-        })
-        .catch(() => alert("Fout bij ophalen van beschikbare datums."));
-    }
-
-    function bevestigAfspraak() {
-      const datum = document.getElementById("datumSelect").value;
-      if (!datum) return alert("Kies eerst een datum.");
-      if (!confirm(`Weet je zeker dat je ${datum} wilt kiezen?`)) return;
-
-      fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDate=${encodeURIComponent(datum)}`)
+    fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDate=${encodeURIComponent(datum)}`)
       .then(r => r.text())
       .then(msg => {
         document.getElementById("resultaat").innerText = msg;
         document.getElementById("afspraakSectie").style.display = "none";
       })
       .catch(() => alert("Fout bij afspraken opslaan."));
-    }
+  }
 
-    function submitReden() {
-      const reden = document.getElementById("redenSelect").value;
-      alert(`Reden geregistreerd: ${reden}`);
-      document.getElementById("redenKeuze").style.display = "none";
-      document.getElementById("resultaat").innerText = "Reden geregistreerd, bedankt!";
-    }
-  </script>
+  function submitReden() {
+    const reden = document.getElementById("redenSelect").value;
+    alert(`Reden geregistreerd: ${reden}`);
+    document.getElementById("redenKeuze").style.display = "none";
+    document.getElementById("resultaat").innerText = "Reden geregistreerd, bedankt!";
+  }
+</script>
+
 </body>
 </html>
 
