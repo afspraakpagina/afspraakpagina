@@ -98,6 +98,7 @@ function bevestigAfspraak() {
 
   if (gekozen.length === 0) return alert("Kies minstens één datum.");
   if (!confirm(`Bevestig je deze datums: ${gekozen.join(", ")}?`)) return;
+console.log("Geselecteerde datums:", gekozen);
 
   fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(gekozen.join(","))}`)
     .then(r => r.text())
