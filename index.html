@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Afspraak maken</title>
   <style>
     body { font-family: sans-serif; margin: 20px; }
@@ -13,19 +13,19 @@
   <h2>Welkom bewoner</h2>
 
   <label for="houseNumber">Huisnummer:</label>
-  <input type="text" id="houseNumber" readonly><br>
+  <input type="text" id="houseNumber" readonly /><br />
 
-  <hr>
+  <hr />
 
   <button onclick="kiesActie('afspraak')">✅ Afspraak maken</button>
   <button onclick="kiesActie('weigeren')">❌ Ik geef geen toestemming</button>
 
-  <div id="resultaat"></div>
+  <div id="resultaat" style="margin-top:15px; font-weight: bold;"></div>
 
-  <div id="datumKeuze" style="display:none;"></div>
+  <div id="datumKeuze" style="display:none; margin-top: 10px;"></div>
 
-  <div id="redenKeuze" style="display:none;">
-    <label>Waarom geen toestemming?</label>
+  <div id="redenKeuze" style="display:none; margin-top: 10px;">
+    <label>Waarom geen toestemming?</label><br />
     <select id="redenSelect">
       <option value="Niet beschikbaar">Niet beschikbaar</option>
       <option value="Geen interesse">Geen interesse</option>
@@ -35,12 +35,12 @@
   </div>
 
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbyxql6pymzxryjXCcQ6Yw-2CodjcsHdfd3S1oi8fMPy/dev"; // ← vervang dit met jouw eigen Apps Script URL
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbyxql6pymzxryjXCcQ6Yw-2CodjcsHdfd3S1oi8fMPy/dev"; // Vervang met jouw Apps Script URL
 
-    // ✅ Lees ?huisnummer=... uit URL
+    // Haal query parameter uit URL
     function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
+      const params = new URLSearchParams(window.location.search);
+      return params.get(param);
     }
 
     // Vul huisnummer automatisch in
@@ -50,41 +50,71 @@
     }
 
     function kiesActie(type) {
-      const huisnummer = document.getElementById("houseNumber").value;
-      if (!huisnummer) return alert("Geen huisnummer gevonden!");
+      clearMessages();
 
-      if (type === 'afspraak') {
+      const huisnummer = document.getElementById("houseNumber").value.trim();
+      if (!huisnummer) {
+        alert("Geen huisnummer gevonden!");
+        return;
+      }
+
+      if (type === "afspraak") {
+        document.getElementById("redenKeuze").style.display = "none";
+
         fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
-          .then(res => res.json())
-          .then(data => {
+          .then((res) => res.json())
+          .then((data) => {
             const div = document.getElementById("datumKeuze");
             div.innerHTML = "<p>Kies een datum:</p>";
-            data.forEach(datum => {
-              const btn = document.createElement("button");
-              btn.innerText = datum;
-              btn.onclick = () => maakAfspraak(huisnummer, datum);
-              div.appendChild(btn);
-            });
+            if (data.length === 0) {
+              div.innerHTML += "<p>Geen beschikbare data gevonden.</p>";
+            } else {
+              data.forEach((datum) => {
+                const btn = document.createElement("button");
+                btn.innerText = datum;
+                btn.onclick = () => maakAfspraak(huisnummer, datum);
+                div.appendChild(btn);
+              });
+            }
             div.style.display = "block";
-          }).catch(() => alert("Geen data gevonden of fout bij ophalen."));
-      } else {
+          })
+          .catch(() => {
+            alert("Geen data gevonden of fout bij ophalen.");
+          });
+      } else if (type === "weigeren") {
+        document.getElementById("datumKeuze").style.display = "none";
         document.getElementById("redenKeuze").style.display = "block";
       }
     }
 
     function maakAfspraak(huisnummer, datum) {
-      fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDate=${encodeURIComponent(datum)}`)
-        .then(res => res.text())
-        .then(msg => {
+      clearMessages();
+      fetch(
+        `${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(
+          huisnummer
+        )}&selectedDate=${encodeURIComponent(datum)}`
+      )
+        .then((res) => res.text())
+        .then((msg) => {
           document.getElementById("resultaat").innerText = msg;
-        }).catch(() => alert("Fout bij afspraak maken."));
+          document.getElementById("datumKeuze").style.display = "none";
+        })
+        .catch(() => alert("Fout bij afspraak maken."));
     }
 
     function submitReden() {
       const reden = document.getElementById("redenSelect").value;
       alert(`Reden geregistreerd: ${reden}`);
-      // Eventueel naar de sheet sturen via fetch
+      document.getElementById("redenKeuze").style.display = "none";
+      document.getElementById("resultaat").innerText = "Reden geregistreerd, bedankt!";
+      // Hier kan je fetch toevoegen om reden naar backend te sturen
+    }
+
+    function clearMessages() {
+      document.getElementById("resultaat").innerText = "";
+      document.getElementById("datumKeuze").innerHTML = "";
     }
   </script>
 </body>
 </html>
+
