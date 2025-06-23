@@ -52,56 +52,9 @@
   }
 
   const huisnummer = getQueryParam("huisnummer");
-  if (huisnummer) document.getElementById("houseNumber").value = huisnummer;
-
-  function kiesActie(type) {
-    document.getElementById("resultaat").innerText = "";
-    if (type === "afspraak") {
-      document.getElementById("afspraakSectie").style.display = "block";
-      document.getElementById("redenKeuze").style.display = "none";
-      loadAvailableDates();
-    } else {
-      document.getElementById("afspraakSectie").style.display = "none";
-      document.getElementById("redenKeuze").style.display = "block";
-    }
+  if (huisnummer) {
+    document.getElementById("houseNumber").value = huisnummer;
   }
-
-function loadAvailableDates() {
-  fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
-    .then(r => r.json())
-    .then(data => {
-      const container = document.getElementById("datumCheckboxes");
-      container.innerHTML = ""; // Leegmaken
-
-      data.forEach(date => {
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = date;
-        checkbox.id = `date-${date}`;
-
-        const label = document.createElement("label");
-        label.htmlFor = `date-${date}`;
-        label.innerText = date;
-
-        const div = document.createElement("div");
-        div.appendChild(checkbox);
-        div.appendChild(label);
-        container.appendChild(div);
-      });
-    })
-    .catch(() => alert("Fout bij ophalen van datums."));
-}
-
-<script>
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbxKltW-50Nz2ahxllTgSe3VO2EGo4inSB_ptosBqvaCZMk1_byfbJJXF5N06nESNIB3HQ/exec";
-
-  function getQueryParam(param) {
-    const p = new URLSearchParams(window.location.search);
-    return p.get(param);
-  }
-
-  const huisnummer = getQueryParam("huisnummer");
-  if (huisnummer) document.getElementById("houseNumber").value = huisnummer;
 
   function kiesActie(type) {
     document.getElementById("resultaat").innerText = "";
@@ -148,7 +101,7 @@ function loadAvailableDates() {
       .map(cb => cb.value.trim())
       .filter(d => d !== "");
 
-    console.log("✅ Geselecteerde datums:", gekozen); // DEBUG
+    console.log("✅ Geselecteerde datums:", gekozen);
 
     if (gekozen.length === 0) {
       alert("Kies minstens één datum.");
@@ -158,14 +111,14 @@ function loadAvailableDates() {
     const geselecteerdeDatums = gekozen.join(",");
     const url = `${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(geselecteerdeDatums)}`;
 
-    console.log("🔗 URL die verstuurd wordt:", url); // DEBUG
+    console.log("🔗 URL die verstuurd wordt:", url);
 
     if (!confirm(`Bevestig je deze datums: ${gekozen.join(", ")}?`)) return;
 
     fetch(url)
       .then(r => r.text())
       .then(msg => {
-        console.log("📩 Server antwoord:", msg); // DEBUG
+        console.log("📩 Server antwoord:", msg);
         document.getElementById("resultaat").innerText = msg;
         document.getElementById("afspraakSectie").style.display = "none";
       })
@@ -188,6 +141,7 @@ function loadAvailableDates() {
       .catch(() => alert("Fout bij versturen reden."));
   }
 </script>
+
 
 
 </body>
