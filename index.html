@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>Afspraak maken</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
     body { font-family: sans-serif; margin: 20px; }
-    label, button { display: block; margin: 10px 0; }
+    label, button { margin: 10px 0; display: block; }
     #resultaat { margin-top: 15px; font-weight: bold; }
   </style>
 </head>
@@ -22,7 +23,7 @@
 
   <div id="afspraakSectie" style="display:none;">
     <label for="datumSelect">Kies een datum:</label>
-    <input type="date" id="datumSelect" />
+    <input type="text" id="datumSelect" placeholder="Selecteer een datum" readonly>
     <button onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
   </div>
 
@@ -38,48 +39,58 @@
 
   <div id="resultaat"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbzsW8Zy-Z93E25qfFefBNdoNoggOprV-21Fs8qn1XOnN4pgj4RPEXqq_tdTZrmKPsE06A/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbzsW8Zy-Z93E25.../exec";
+    let availableDates = [];
 
     function getQueryParam(param) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(param);
+      const p = new URLSearchParams(window.location.search);
+      return p.get(param);
     }
 
     const huisnummer = getQueryParam("huisnummer");
-    if (huisnummer) {
-      document.getElementById("houseNumber").value = huisnummer;
-    }
+    if (huisnummer) document.getElementById("houseNumber").value = huisnummer;
 
     function kiesActie(type) {
       document.getElementById("resultaat").innerText = "";
       if (type === "afspraak") {
         document.getElementById("afspraakSectie").style.display = "block";
         document.getElementById("redenKeuze").style.display = "none";
-      } else if (type === "weigeren") {
+        loadAvailableDates();
+      } else {
         document.getElementById("afspraakSectie").style.display = "none";
         document.getElementById("redenKeuze").style.display = "block";
       }
     }
 
+    function loadAvailableDates() {
+      fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
+        .then(r => r.json())
+        .then(data => {
+          availableDates = data.map(dt => dt.split("-")); // ["2025","07","24"]
+          const formatted = availableDates.map(arr => new Date(arr[0], arr[1]-1, arr[2]));
+          flatpickr("#datumSelect", {
+            enable: formatted,
+            dateFormat: "Y-m-d",
+            defaultDate: formatted[0] || null
+          });
+        })
+        .catch(() => alert("Fout bij ophalen van beschikbare datums."));
+    }
+
     function bevestigAfspraak() {
-      const huisnummer = document.getElementById("houseNumber").value.trim();
       const datum = document.getElementById("datumSelect").value;
-
-      if (!datum) {
-        alert("Kies een datum.");
-        return;
-      }
-
-      if (!confirm(`Weet je zeker dat je ${datum} wilt kiezen voor een afspraak?`)) return;
+      if (!datum) return alert("Kies eerst een datum.");
+      if (!confirm(`Weet je zeker dat je ${datum} wilt kiezen?`)) return;
 
       fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDate=${encodeURIComponent(datum)}`)
-        .then((res) => res.text())
-        .then((msg) => {
-          document.getElementById("resultaat").innerText = msg;
-          document.getElementById("afspraakSectie").style.display = "none";
-        })
-        .catch(() => alert("Fout bij afspraak maken."));
+      .then(r => r.text())
+      .then(msg => {
+        document.getElementById("resultaat").innerText = msg;
+        document.getElementById("afspraakSectie").style.display = "none";
+      })
+      .catch(() => alert("Fout bij afspraken opslaan."));
     }
 
     function submitReden() {
@@ -87,11 +98,11 @@
       alert(`Reden geregistreerd: ${reden}`);
       document.getElementById("redenKeuze").style.display = "none";
       document.getElementById("resultaat").innerText = "Reden geregistreerd, bedankt!";
-      // Optioneel: stuur reden ook naar Apps Script
     }
   </script>
 </body>
 </html>
+
 
 
 
