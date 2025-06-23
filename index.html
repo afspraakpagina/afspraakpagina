@@ -92,22 +92,42 @@ function loadAvailableDates() {
     .catch(() => alert("Fout bij ophalen van datums."));
 }
 
+<script>
 function bevestigAfspraak() {
   const checkboxes = document.querySelectorAll("#datumCheckboxes input[type='checkbox']");
-  const gekozen = [...checkboxes].filter(cb => cb.checked).map(cb => cb.value);
+  const gekozen = [...checkboxes]
+    .filter(cb => cb.checked)
+    .map(cb => cb.value.trim())
+    .filter(d => d !== "");
 
-  if (gekozen.length === 0) return alert("Kies minstens één datum.");
+  console.log("✅ Geselecteerde datums:", gekozen); // DEBUG
+
+  if (gekozen.length === 0) {
+    alert("Kies minstens één datum.");
+    return;
+  }
+
+  const geselecteerdeDatums = gekozen.join(",");
+  const url = `${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(geselecteerdeDatums)}`;
+
+  console.log("🔗 URL die verstuurd wordt:", url); // DEBUG
+
   if (!confirm(`Bevestig je deze datums: ${gekozen.join(", ")}?`)) return;
-console.log("Geselecteerde datums:", gekozen);
 
-  fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(gekozen.join(","))}`)
+  fetch(url)
     .then(r => r.text())
     .then(msg => {
+      console.log("📩 Server antwoord:", msg); // DEBUG
       document.getElementById("resultaat").innerText = msg;
       document.getElementById("afspraakSectie").style.display = "none";
     })
-    .catch(() => alert("Fout bij versturen afspraak."));
+    .catch((err) => {
+      console.error("❌ Fout bij versturen:", err);
+      alert("Fout bij versturen afspraak.");
+    });
 }
+
+
 
 
 function submitReden() {
