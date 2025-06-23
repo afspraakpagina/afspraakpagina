@@ -2,12 +2,10 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Afspraak Keuze Bewoner</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <title>Afspraak maken</title>
   <style>
     body { font-family: sans-serif; margin: 20px; }
     button { margin: 5px; }
-    #reader { width: 300px; margin-top: 20px; }
     #datumKeuze button { display: block; margin: 5px 0; }
   </style>
 </head>
@@ -15,9 +13,7 @@
   <h2>Welkom bewoner</h2>
 
   <label for="houseNumber">Huisnummer:</label>
-  <input type="text" id="houseNumber" readonly placeholder="Scan QR-code"><br>
-  <button onclick="startScanner()">📷 Scan QR-code</button>
-  <div id="reader" style="display:none;"></div>
+  <input type="text" id="houseNumber" readonly><br>
 
   <hr>
 
@@ -39,38 +35,26 @@
   </div>
 
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbyxql6pymzxryjXCcQ6Yw-2CodjcsHdfd3S1oi8fMPy/dev"; // <- Vervang dit met jouw URL
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbyxql6pymzxryjXCcQ6Yw-2CodjcsHdfd3S1oi8fMPy/dev"; // ← vervang dit met jouw eigen Apps Script URL
 
-    function startScanner() {
-      const readerDiv = document.getElementById("reader");
-      readerDiv.style.display = "block";
+    // ✅ Lees ?huisnummer=... uit URL
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
 
-      const html5QrCode = new Html5Qrcode("reader");
-      const config = { fps: 10, qrbox: 250 };
-
-      html5QrCode.start(
-        { facingMode: "environment" },
-        config,
-        (decodedText) => {
-          document.getElementById("houseNumber").value = decodedText;
-          html5QrCode.stop();
-          readerDiv.style.display = "none";
-        },
-        (errorMessage) => {
-          console.log("Scan fout:", errorMessage);
-        }
-      ).catch(err => {
-        console.error("Camera start fout:", err);
-        alert("Kan camera niet starten. Probeer opnieuw.");
-      });
+    // Vul huisnummer automatisch in
+    const huisnummer = getQueryParam("huisnummer");
+    if (huisnummer) {
+      document.getElementById("houseNumber").value = huisnummer;
     }
 
     function kiesActie(type) {
       const huisnummer = document.getElementById("houseNumber").value;
-      if (!huisnummer) return alert("Scan eerst je QR-code of voer huisnummer in!");
+      if (!huisnummer) return alert("Geen huisnummer gevonden!");
 
       if (type === 'afspraak') {
-        fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${huisnummer}`)
+        fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
           .then(res => res.json())
           .then(data => {
             const div = document.getElementById("datumKeuze");
@@ -82,27 +66,25 @@
               div.appendChild(btn);
             });
             div.style.display = "block";
-          });
+          }).catch(() => alert("Geen data gevonden of fout bij ophalen."));
       } else {
         document.getElementById("redenKeuze").style.display = "block";
       }
     }
 
     function maakAfspraak(huisnummer, datum) {
-      fetch(`${scriptUrl}?action=markAppointment&houseNumber=${huisnummer}&selectedDate=${datum}`)
+      fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDate=${encodeURIComponent(datum)}`)
         .then(res => res.text())
         .then(msg => {
           document.getElementById("resultaat").innerText = msg;
-        });
+        }).catch(() => alert("Fout bij afspraak maken."));
     }
 
     function submitReden() {
       const reden = document.getElementById("redenSelect").value;
       alert(`Reden geregistreerd: ${reden}`);
-      // Hier kun je eventueel ook de reden naar een sheet loggen met Apps Script
+      // Eventueel naar de sheet sturen via fetch
     }
   </script>
 </body>
 </html>
-
-
