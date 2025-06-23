@@ -93,57 +93,102 @@ function loadAvailableDates() {
 }
 
 <script>
-function bevestigAfspraak() {
-  const checkboxes = document.querySelectorAll("#datumCheckboxes input[type='checkbox']");
-  const gekozen = [...checkboxes]
-    .filter(cb => cb.checked)
-    .map(cb => cb.value.trim())
-    .filter(d => d !== "");
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbxKltW-50Nz2ahxllTgSe3VO2EGo4inSB_ptosBqvaCZMk1_byfbJJXF5N06nESNIB3HQ/exec";
 
-  console.log("✅ Geselecteerde datums:", gekozen); // DEBUG
-
-  if (gekozen.length === 0) {
-    alert("Kies minstens één datum.");
-    return;
+  function getQueryParam(param) {
+    const p = new URLSearchParams(window.location.search);
+    return p.get(param);
   }
 
-  const geselecteerdeDatums = gekozen.join(",");
-  const url = `${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(geselecteerdeDatums)}`;
+  const huisnummer = getQueryParam("huisnummer");
+  if (huisnummer) document.getElementById("houseNumber").value = huisnummer;
 
-  console.log("🔗 URL die verstuurd wordt:", url); // DEBUG
-
-  if (!confirm(`Bevestig je deze datums: ${gekozen.join(", ")}?`)) return;
-
-  fetch(url)
-    .then(r => r.text())
-    .then(msg => {
-      console.log("📩 Server antwoord:", msg); // DEBUG
-      document.getElementById("resultaat").innerText = msg;
-      document.getElementById("afspraakSectie").style.display = "none";
-    })
-    .catch((err) => {
-      console.error("❌ Fout bij versturen:", err);
-      alert("Fout bij versturen afspraak.");
-    });
-}
-
-
-
-
-function submitReden() {
-  const reden = document.getElementById("redenSelect").value;
-  if (!reden) return alert("Kies een reden.");
-
-  fetch(`${scriptUrl}?action=declineAppointment&houseNumber=${encodeURIComponent(huisnummer)}&reason=${encodeURIComponent(reden)}`)
-    .then(r => r.text())
-    .then(msg => {
+  function kiesActie(type) {
+    document.getElementById("resultaat").innerText = "";
+    if (type === "afspraak") {
+      document.getElementById("afspraakSectie").style.display = "block";
       document.getElementById("redenKeuze").style.display = "none";
-      document.getElementById("resultaat").innerText = msg;
-    })
-    .catch(() => alert("Fout bij versturen reden."));
-}
+      loadAvailableDates();
+    } else {
+      document.getElementById("afspraakSectie").style.display = "none";
+      document.getElementById("redenKeuze").style.display = "block";
+    }
+  }
 
+  function loadAvailableDates() {
+    fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
+      .then(r => r.json())
+      .then(data => {
+        const container = document.getElementById("datumCheckboxes");
+        container.innerHTML = "";
+
+        data.forEach(date => {
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.value = date;
+          checkbox.id = `date-${date}`;
+
+          const label = document.createElement("label");
+          label.htmlFor = `date-${date}`;
+          label.innerText = date;
+
+          const div = document.createElement("div");
+          div.appendChild(checkbox);
+          div.appendChild(label);
+          container.appendChild(div);
+        });
+      })
+      .catch(() => alert("Fout bij ophalen van datums."));
+  }
+
+  function bevestigAfspraak() {
+    const checkboxes = document.querySelectorAll("#datumCheckboxes input[type='checkbox']");
+    const gekozen = [...checkboxes]
+      .filter(cb => cb.checked)
+      .map(cb => cb.value.trim())
+      .filter(d => d !== "");
+
+    console.log("✅ Geselecteerde datums:", gekozen); // DEBUG
+
+    if (gekozen.length === 0) {
+      alert("Kies minstens één datum.");
+      return;
+    }
+
+    const geselecteerdeDatums = gekozen.join(",");
+    const url = `${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(geselecteerdeDatums)}`;
+
+    console.log("🔗 URL die verstuurd wordt:", url); // DEBUG
+
+    if (!confirm(`Bevestig je deze datums: ${gekozen.join(", ")}?`)) return;
+
+    fetch(url)
+      .then(r => r.text())
+      .then(msg => {
+        console.log("📩 Server antwoord:", msg); // DEBUG
+        document.getElementById("resultaat").innerText = msg;
+        document.getElementById("afspraakSectie").style.display = "none";
+      })
+      .catch((err) => {
+        console.error("❌ Fout bij versturen:", err);
+        alert("Fout bij versturen afspraak.");
+      });
+  }
+
+  function submitReden() {
+    const reden = document.getElementById("redenSelect").value;
+    if (!reden) return alert("Kies een reden.");
+
+    fetch(`${scriptUrl}?action=declineAppointment&houseNumber=${encodeURIComponent(huisnummer)}&reason=${encodeURIComponent(reden)}`)
+      .then(r => r.text())
+      .then(msg => {
+        document.getElementById("redenKeuze").style.display = "none";
+        document.getElementById("resultaat").innerText = msg;
+      })
+      .catch(() => alert("Fout bij versturen reden."));
+  }
 </script>
+
 
 </body>
 </html>
