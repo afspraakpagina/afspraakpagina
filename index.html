@@ -6,7 +6,26 @@
   <style>
     body { font-family: sans-serif; margin: 20px; }
     button { margin: 5px; }
-    #datumKeuze button { display: block; margin: 5px 0; }
+    .datum-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .datum-btn {
+      padding: 10px;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .datum-btn:hover {
+      background-color: #cceeff;
+    }
+    .bevestigd {
+      background-color: #b6fcb6;
+      border-color: #2ecc71;
+    }
   </style>
 </head>
 <body>
@@ -22,7 +41,7 @@
 
   <div id="resultaat" style="margin-top:15px; font-weight: bold;"></div>
 
-  <div id="datumKeuze" style="display:none; margin-top: 10px;"></div>
+  <div id="datumKeuze" class="datum-grid" style="display:none;"></div>
 
   <div id="redenKeuze" style="display:none; margin-top: 10px;">
     <label>Waarom geen toestemming?</label><br />
@@ -35,15 +54,13 @@
   </div>
 
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbzsW8Zy-Z93E25qfFefBNdoNoggOprV-21Fs8qn1XOnN4pgj4RPEXqq_tdTZrmKPsE06A/exec"; // Vervang met jouw Apps Script URL
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbzsW8Zy-Z93E25qfFefBNdoNoggOprV-21Fs8qn1XOnN4pgj4RPEXqq_tdTZrmKPsE06A/exec"; // Jouw Apps Script URL
 
-    // Haal query parameter uit URL
     function getQueryParam(param) {
       const params = new URLSearchParams(window.location.search);
       return params.get(param);
     }
 
-    // Vul huisnummer automatisch in
     const huisnummer = getQueryParam("huisnummer");
     if (huisnummer) {
       document.getElementById("houseNumber").value = huisnummer;
@@ -65,41 +82,40 @@
           .then((res) => res.json())
           .then((data) => {
             const div = document.getElementById("datumKeuze");
-            div.innerHTML = "<p>Kies een datum:</p>";
+            div.innerHTML = "";
             if (data.length === 0) {
-              div.innerHTML += "<p>Geen beschikbare data gevonden.</p>";
+              div.innerHTML = "<p>Geen beschikbare data gevonden.</p>";
             } else {
               data.forEach((datum) => {
                 const btn = document.createElement("button");
+                btn.className = "datum-btn";
                 btn.innerText = datum;
-                btn.onclick = () => maakAfspraak(huisnummer, datum);
+                btn.onclick = () => bevestigAfspraak(huisnummer, datum, btn);
                 div.appendChild(btn);
               });
             }
-            div.style.display = "block";
+            div.style.display = "grid";
           })
           .catch(() => {
             alert("Geen data gevonden of fout bij ophalen.");
           });
+
       } else if (type === "weigeren") {
         document.getElementById("datumKeuze").style.display = "none";
         document.getElementById("redenKeuze").style.display = "block";
       }
     }
 
-    function maakAfspraak(huisnummer, datum) {
-      clearMessages();
-      fetch(
-        `${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(
-          huisnummer
-        )}&selectedDate=${encodeURIComponent(datum)}`
-      )
+    function bevestigAfspraak(huisnummer, datum, knop) {
+      if (!confirm(`Wilt u deze datum bevestigen: ${datum}?`)) return;
+
+      fetch(`${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDate=${encodeURIComponent(datum)}`)
         .then((res) => res.text())
         .then((msg) => {
           document.getElementById("resultaat").innerText = msg;
-          document.getElementById("datumKeuze").style.display = "none";
+          knop.classList.add("bevestigd");
         })
-        .catch(() => alert("Fout bij afspraak maken."));
+        .catch(() => alert("Fout bij bevestigen van afspraak."));
     }
 
     function submitReden() {
@@ -107,14 +123,17 @@
       alert(`Reden geregistreerd: ${reden}`);
       document.getElementById("redenKeuze").style.display = "none";
       document.getElementById("resultaat").innerText = "Reden geregistreerd, bedankt!";
-      // Hier kan je fetch toevoegen om reden naar backend te sturen
+      // Optioneel: verstuur reden met fetch
+      // fetch(`${scriptUrl}?action=weigeren&houseNumber=...&reden=...`)
     }
 
     function clearMessages() {
       document.getElementById("resultaat").innerText = "";
       document.getElementById("datumKeuze").innerHTML = "";
+      document.getElementById("datumKeuze").style.display = "none";
     }
   </script>
 </body>
 </html>
+
 
