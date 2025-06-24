@@ -106,7 +106,8 @@
       const geselecteerdeDatums = gekozen.join(",");
       const url = `${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(geselecteerdeDatums)}`;
 
-      if (!confirm(`Bevestig je deze datums: ${gekozen.join(", ")}?`)) return;
+      if (!window.confirm(`Bevestig je deze datums: ${gekozen.join(", ")}?`)) return;
+
 
       fetch(url)
         .then(r => r.text())
