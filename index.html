@@ -8,6 +8,20 @@
     body { font-family: sans-serif; margin: 20px; }
     label, button { margin: 10px 0; display: block; }
     #resultaat { margin-top: 15px; font-weight: bold; }
+
+    /* Modal stijl */
+    #bevestigModal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5); z-index: 9999;
+      justify-content: center; align-items: center;
+    }
+    #bevestigModalContent {
+      background: white; padding: 20px; border-radius: 10px; max-width: 400px;
+      text-align: center;
+    }
+    #bevestigModalContent button {
+      margin: 5px;
+    }
   </style>
 </head>
 <body>
@@ -39,18 +53,24 @@
 
   <div id="resultaat"></div>
 
+  <!-- Modal -->
+  <div id="bevestigModal">
+    <div id="bevestigModalContent">
+      <p id="modalText">Weet je zeker dat je deze datums wilt bevestigen?</p>
+      <button onclick="verzendBevestiging()">✅ Bevestig</button>
+      <button onclick="sluitModal()">Annuleer</button>
+    </div>
+  </div>
+
   <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbxKltW-50Nz2ahxllTgSe3VO2EGo4inSB_ptosBqvaCZMk1_byfbJJXF5N06nESNIB3HQ/exec";
 
-    function getQueryParam(param) {
-      const p = new URLSearchParams(window.location.search);
-      return p.get(param);
-    }
-
-    const huisnummer = getQueryParam("huisnummer");
+    const huisnummer = new URLSearchParams(window.location.search).get("huisnummer");
     if (huisnummer) {
       document.getElementById("houseNumber").value = huisnummer;
     }
+
+    let gekozenDatums = [];
 
     function kiesActie(type) {
       document.getElementById("resultaat").innerText = "";
@@ -91,23 +111,33 @@
     }
 
     function bevestigAfspraak(event) {
-    if (event) event.preventDefault(); // voorkom standaard gedrag
+      if (event) event.preventDefault();
+
       const checkboxes = document.querySelectorAll("#datumCheckboxes input[type='checkbox']");
-      const gekozen = [...checkboxes]
+      gekozenDatums = [...checkboxes]
         .filter(cb => cb.checked)
         .map(cb => cb.value.trim())
         .filter(d => d !== "");
 
-      if (gekozen.length === 0) {
+      if (gekozenDatums.length === 0) {
         alert("Kies minstens één datum.");
         return;
       }
 
-      const geselecteerdeDatums = gekozen.join(",");
+      document.getElementById("modalText").innerText =
+        `Bevestig je deze datums:\n${gekozenDatums.join(", ")}`;
+      document.getElementById("bevestigModal").style.display = "flex";
+    }
+
+    function sluitModal() {
+      document.getElementById("bevestigModal").style.display = "none";
+    }
+
+    function verzendBevestiging() {
+      sluitModal();
+
+      const geselecteerdeDatums = gekozenDatums.join(",");
       const url = `${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(geselecteerdeDatums)}`;
-
-      if (!window.confirm(`Bevestig je deze datums: ${gekozen.join(", ")}?`)) return;
-
 
       fetch(url)
         .then(r => r.text())
@@ -133,6 +163,7 @@
   </script>
 </body>
 </html>
+
 
 
 
