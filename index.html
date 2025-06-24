@@ -51,6 +51,16 @@
   <div id="afspraakSectie" style="display:none;">
     <label>Kies één of meer geplande datums:</label>
     <div id="datumCheckboxes"></div>
+
+    <label for="email">E-mailadres:</label>
+    <input type="email" id="email" placeholder="optioneel" />
+
+    <label for="telefoon">Telefoonnummer:</label>
+    <input type="tel" id="telefoon" placeholder="optioneel" />
+
+    <label for="opmerking">Opmerking:</label>
+    <textarea id="opmerking" placeholder="optioneel"></textarea>
+
     <button type="button" onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
   </div>
 
@@ -75,9 +85,8 @@
   </div>
 
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbyuT_lsKwdVcsAAXwZOoaR69hsVKdtLUoV4mPS6BYicdxErdFwphWR_YzksDeD617qH/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbzETbzjBVgh2mV_tk0xezyJgkddIbGz2W_7cGcRWailANjRAeU86dGs0VSEVAgFldXh/exec";
 
-    // URL parameters ophalen: plaats, straat, huisnummer
     const urlParams = new URLSearchParams(window.location.search);
     const plaats = urlParams.get("plaats");
     const straat = urlParams.get("straat");
@@ -173,10 +182,25 @@
 
     function verzendBevestiging() {
       sluitModal();
-      const geselecteerdeDatums = gekozenDatums.join(",");
-      const url = `${scriptUrl}?action=markAppointment&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(geselecteerdeDatums)}`;
 
-      fetch(url)
+      const geselecteerdeDatums = gekozenDatums.join(",");
+      const email = document.getElementById("email").value.trim();
+      const telefoon = document.getElementById("telefoon").value.trim();
+      const opmerking = document.getElementById("opmerking").value.trim();
+
+      const params = new URLSearchParams({
+        action: "markAppointment",
+        plaats,
+        straat,
+        huisnummer,
+        selectedDates: geselecteerdeDatums,
+      });
+
+      if (email) params.append("email", email);
+      if (telefoon) params.append("telefoon", telefoon);
+      if (opmerking) params.append("opmerking", opmerking);
+
+      fetch(`${scriptUrl}?${params.toString()}`)
         .then(r => r.text())
         .then(() => toonBedanktOverlay())
         .catch(() => alert("Fout bij versturen afspraak."));
@@ -198,7 +222,7 @@
         try {
           window.close();
         } catch (e) {
-          window.location.href = "https://www.google.com"; // Fallback als sluiten niet lukt
+          window.location.href = "https://www.google.com";
         }
       }, 5000);
     }
