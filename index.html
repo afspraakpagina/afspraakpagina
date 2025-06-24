@@ -76,10 +76,15 @@
 
   <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbx1IVWY5oEXRYF764SA0utkOn36JPeLqVmvAEwd-V5_nw5J52bOtOrf1dyTCml4L51X/exec";
-    const huisnummer = new URLSearchParams(window.location.search).get("huisnummer");
+
+    // URL parameters ophalen: plaats, straat, huisnummer
+    const urlParams = new URLSearchParams(window.location.search);
+    const plaats = urlParams.get("plaats");
+    const straat = urlParams.get("straat");
+    const huisnummer = urlParams.get("huisnummer");
+
     let gekozenDatums = [];
 
-    // Reset UI bij laden
     window.addEventListener("load", () => {
       document.getElementById("overlay").style.display = "none";
       document.body.style.pointerEvents = "auto";
@@ -89,19 +94,25 @@
       document.getElementById("datumCheckboxes").innerHTML = "";
       document.getElementById("bevestigModal").style.display = "none";
 
-      if (huisnummer) {
+      if (huisnummer && straat && plaats) {
         document.getElementById("houseNumber").value = huisnummer;
-        fetch(`${scriptUrl}?action=getInfo&houseNumber=${encodeURIComponent(huisnummer)}`)
+        fetch(`${scriptUrl}?action=getAddressDetails&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}`)
           .then(r => r.json())
           .then(data => {
-            const { straat, plaats } = data;
-            document.getElementById("welkomText").innerText =
-              `Welkom bewoner van de ${straat}, ${huisnummer}, ${plaats}`;
+            if (!data.error) {
+              document.getElementById("welkomText").innerText =
+                `Welkom bewoner van de ${data.straat}, ${data.huisnummer}, ${data.plaats}`;
+            } else {
+              document.getElementById("welkomText").innerText =
+                `Welkom bewoner van huisnummer ${huisnummer}`;
+            }
           })
           .catch(() => {
             document.getElementById("welkomText").innerText =
               `Welkom bewoner van huisnummer ${huisnummer}`;
           });
+      } else {
+        document.getElementById("welkomText").innerText = "Welkom bewoner";
       }
     });
 
@@ -118,7 +129,7 @@
     }
 
     function loadAvailableDates() {
-      fetch(`${scriptUrl}?action=getAvailableDates&houseNumber=${encodeURIComponent(huisnummer)}`)
+      fetch(`${scriptUrl}?action=getAvailableDates&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}`)
         .then(r => r.json())
         .then(data => {
           const container = document.getElementById("datumCheckboxes");
@@ -163,7 +174,7 @@
     function verzendBevestiging() {
       sluitModal();
       const geselecteerdeDatums = gekozenDatums.join(",");
-      const url = `${scriptUrl}?action=markAppointment&houseNumber=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(geselecteerdeDatums)}`;
+      const url = `${scriptUrl}?action=markAppointment&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}&selectedDates=${encodeURIComponent(geselecteerdeDatums)}`;
 
       fetch(url)
         .then(r => r.text())
@@ -175,7 +186,7 @@
       const reden = document.getElementById("redenSelect").value;
       if (!reden) return alert("Kies een reden.");
 
-      fetch(`${scriptUrl}?action=declineAppointment&houseNumber=${encodeURIComponent(huisnummer)}&reason=${encodeURIComponent(reden)}`)
+      fetch(`${scriptUrl}?action=declineAppointment&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}&reason=${encodeURIComponent(reden)}`)
         .then(() => toonBedanktOverlay())
         .catch(() => alert("Fout bij versturen reden."));
     }
