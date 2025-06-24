@@ -40,8 +40,8 @@
 
   <h2 id="welkomText">Welkom bewoner</h2>
 
-  <label for="houseNumber">Huisnummer:</label>
-  <input type="text" id="houseNumber" readonly />
+  <label for="huisnummer">Huisnummer:</label>
+  <input type="text" id="huisnummer" readonly />
 
   <hr />
 
@@ -95,7 +95,7 @@
       document.getElementById("bevestigModal").style.display = "none";
 
       if (huisnummer && straat && plaats) {
-        document.getElementById("houseNumber").value = huisnummer;
+        document.getElementById("huisnummer").value = huisnummer;
         fetch(`${scriptUrl}?action=getAddressDetails&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}`)
           .then(r => r.json())
           .then(data => {
