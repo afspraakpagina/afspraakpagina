@@ -40,15 +40,7 @@
 
   <h2 id="welkomText">Welkom bewoner</h2>
 
-  <label for="huisnummer">Huisnummer:</label>
-  <input type="text" id="huisnummer" readonly />
-
-  <hr />
-
-  <button onclick="kiesActie('afspraak')">✅ Afspraak maken</button>
-  <button onclick="kiesActie('weigeren')">❌ Ik geef geen toestemming</button>
-
-  <!-- Nieuwe inputs altijd zichtbaar -->
+  <!-- Velden eerst -->
   <label for="email">E-mail:</label>
   <input type="email" id="email" />
 
@@ -57,6 +49,14 @@
 
   <label for="opmerking">Opmerking:</label>
   <textarea id="opmerking" rows="3"></textarea>
+
+  <label for="huisnummer">Huisnummer:</label>
+  <input type="text" id="huisnummer" readonly />
+
+  <hr />
+
+  <button onclick="kiesActie('afspraak')">✅ Afspraak maken</button>
+  <button onclick="kiesActie('weigeren')">❌ Ik geef geen toestemming</button>
 
   <div id="afspraakSectie" style="display:none;">
     <label>Kies één of meer geplande datums:</label>
@@ -85,9 +85,8 @@
   </div>
 
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbx48UtKEi2GYs1gB_1QxKkoocjLwPWBAvTDFh4Puv5n4AbMGf9an_5ZpT7LPBgRf-QR/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbx_-t4fmO71tDAB3zLl_hYNYVtOmgEPkq5-sSd14I7i1yepIxWHifbqX3Mu_ZE0P0KG/exec";
 
-    // URL parameters ophalen: plaats, straat, huisnummer
     const urlParams = new URLSearchParams(window.location.search);
     const plaats = urlParams.get("plaats");
     const straat = urlParams.get("straat");
@@ -144,15 +143,22 @@
         .then(data => {
           const container = document.getElementById("datumCheckboxes");
           container.innerHTML = "";
-          data.forEach(date => {
+          data.forEach(dateString => {
+            const dateObj = new Date(dateString);
+            const formatted = dateObj.toLocaleDateString("nl-NL", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric"
+            });
+
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
-            checkbox.value = date;
-            checkbox.id = `date-${date}`;
+            checkbox.value = formatted;
+            checkbox.id = `date-${formatted}`;
 
             const label = document.createElement("label");
-            label.htmlFor = `date-${date}`;
-            label.innerText = date;
+            label.htmlFor = `date-${formatted}`;
+            label.innerText = formatted;
 
             const div = document.createElement("div");
             div.appendChild(checkbox);
@@ -217,12 +223,10 @@
         try {
           window.close();
         } catch (e) {
-          window.location.href = "https://www.google.com"; // fallback als sluiten niet lukt
+          window.location.href = "https://www.google.com";
         }
       }, 5000);
     }
   </script>
 </body>
-</html>
-
 </html>
