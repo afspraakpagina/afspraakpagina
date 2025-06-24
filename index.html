@@ -22,6 +22,18 @@
     #bevestigModalContent button {
       margin: 5px;
     }
+
+    /* Overlay na verzenden */
+    #overlay {
+      display: none;
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.9);
+      color: white; font-size: 24px; font-weight: bold;
+      display: flex; justify-content: center; align-items: center;
+      z-index: 10000;
+      text-align: center;
+      padding: 20px;
+    }
   </style>
 </head>
 <body>
@@ -62,12 +74,28 @@
     </div>
   </div>
 
+  <!-- Overlay na verzenden -->
+  <div id="overlay">Bedankt voor uw reactie.</div>
+
   <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbygdlIJjPq6qmjPJThGL_D0xVPf6CCogh8VCeQAFjZiw70hsMGn629Prow-QiySHtdARQ/exec";
 
     const huisnummer = new URLSearchParams(window.location.search).get("huisnummer");
     if (huisnummer) {
       document.getElementById("houseNumber").value = huisnummer;
+
+      // Ophalen straat en plaats en welkom tekst aanpassen
+      fetch(`${scriptUrl}?action=getAddressDetails&houseNumber=${encodeURIComponent(huisnummer)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.straat && data.plaats) {
+            const welkomTekst = `Welkom bewoner van de ${data.straat} ${huisnummer}, ${data.plaats}`;
+            document.querySelector("h2").innerText = welkomTekst;
+          }
+        })
+        .catch(() => {
+          document.querySelector("h2").innerText = "Welkom bewoner";
+        });
     }
 
     let gekozenDatums = [];
@@ -143,7 +171,7 @@
         .then(r => r.text())
         .then(msg => {
           document.getElementById("resultaat").innerText = msg;
-          document.getElementById("afspraakSectie").style.display = "none";
+          disableFormAndThank();
         })
         .catch(() => alert("Fout bij versturen afspraak."));
     }
@@ -157,12 +185,25 @@
         .then(msg => {
           document.getElementById("redenKeuze").style.display = "none";
           document.getElementById("resultaat").innerText = msg;
+          disableFormAndThank();
         })
         .catch(() => alert("Fout bij versturen reden."));
+    }
+
+    function disableFormAndThank() {
+      // Verberg alle knoppen en invoervelden door overlay te tonen
+      document.body.style.pointerEvents = "none"; // geen interactie meer mogelijk
+      document.getElementById("overlay").style.display = "flex";
+
+      // Sluit de pagina automatisch na 5 seconden
+      setTimeout(() => {
+        window.close();
+      }, 5000);
     }
   </script>
 </body>
 </html>
+
 
 
 
