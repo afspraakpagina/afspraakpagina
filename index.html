@@ -90,7 +90,8 @@
         .catch(() => alert("Fout bij ophalen van datums."));
     }
 
-    function bevestigAfspraak() {
+    function bevestigAfspraak(event) {
+    if (event) event.preventDefault(); // voorkom standaard gedrag
       const checkboxes = document.querySelectorAll("#datumCheckboxes input[type='checkbox']");
       const gekozen = [...checkboxes]
         .filter(cb => cb.checked)
