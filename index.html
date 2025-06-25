@@ -6,18 +6,37 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
     body { font-family: sans-serif; margin: 20px; }
+
+    /* Formuliervelden netjes uitgelijnd */
+    .form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .form-row label {
+      flex: 0 0 150px;
+      font-weight: bold;
+    }
+    .form-row input,
+    .form-row textarea,
+    .form-row select {
+      flex: 1;
+      padding: 6px;
+      font-size: 14px;
+    }
+
+    /* Checkboxen en datums netjes onder elkaar */
+    #datumCheckboxes > div {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    #datumCheckboxes input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
     #resultaat { margin-top: 15px; font-weight: bold; }
 
-    #datumCheckboxes > div {
-  display: flex;
-  align-items: center;
-  margin-bottom: 5px;
-}
-#datumCheckboxes input[type="checkbox"] {
-  margin-right: 8px;
-}
-
-    
     #bevestigModal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background-color: rgba(0, 0, 0, 0.5); z-index: 9999;
@@ -49,21 +68,26 @@
 
   <h2 id="welkomText">Welkom bewoner</h2>
 
-  <!-- Velden eerst -->
-
+  <!-- Formuliervelden -->
+  <div class="form-row">
     <label for="huisnummer">Huisnummer:</label>
-  <input type="text" id="huisnummer" readonly />
-  
-  <label for="email">E-mail:</label>
-  <input type="email" id="email" />
+    <input type="text" id="huisnummer" readonly />
+  </div>
 
-  <label for="telefoon">Telefoonnummer:</label>
-  <input type="tel" id="telefoon" />
+  <div class="form-row">
+    <label for="email">E-mail:</label>
+    <input type="email" id="email" />
+  </div>
 
-  <label for="opmerking">Opmerking:</label>
-  <textarea id="opmerking" rows="3"></textarea>
+  <div class="form-row">
+    <label for="telefoon">Telefoonnummer:</label>
+    <input type="tel" id="telefoon" />
+  </div>
 
-
+  <div class="form-row">
+    <label for="opmerking">Opmerking:</label>
+    <textarea id="opmerking" rows="3"></textarea>
+  </div>
 
   <hr />
 
@@ -117,23 +141,20 @@
 
       if (huisnummer && straat && plaats) {
         document.getElementById("huisnummer").value = huisnummer;
-fetch(`${scriptUrl}?action=getAddressDetails&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}`)
-  .then(r => r.json())
-  .then(data => {
-    if (!data.error) {
-      document.getElementById("welkomText").innerText =
-        `Welkom bewoner van de ${data.straat}, ${data.huisnummer}, ${data.plaats}`;
-      
-      // Vul de velden als er waarden beschikbaar zijn
-      if (data.email) document.getElementById("email").value = data.email;
-      if (data.telefoon) document.getElementById("telefoon").value = data.telefoon;
-      if (data.opmerking) document.getElementById("opmerking").value = data.opmerking;
-    } else {
-      document.getElementById("welkomText").innerText =
-        `Welkom bewoner van huisnummer ${huisnummer}`;
-    }
-  })
-
+        fetch(`${scriptUrl}?action=getAddressDetails&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}`)
+          .then(r => r.json())
+          .then(data => {
+            if (!data.error) {
+              document.getElementById("welkomText").innerText =
+                `Welkom bewoner van de ${data.straat}, ${data.huisnummer}, ${data.plaats}`;
+              if (data.email) document.getElementById("email").value = data.email;
+              if (data.telefoon) document.getElementById("telefoon").value = data.telefoon;
+              if (data.opmerking) document.getElementById("opmerking").value = data.opmerking;
+            } else {
+              document.getElementById("welkomText").innerText =
+                `Welkom bewoner van huisnummer ${huisnummer}`;
+            }
+          })
           .catch(() => {
             document.getElementById("welkomText").innerText =
               `Welkom bewoner van huisnummer ${huisnummer}`;
