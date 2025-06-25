@@ -181,15 +181,19 @@
       <button type="button" onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
     </div>
 
-    <div id="redenKeuze" style="display:none;">
+<div id="redenKeuze" style="display:none;">
   <label for="redenSelect">Waarom geeft u geen toestemming?</label>
   <select id="redenSelect">
     <option value="Niet beschikbaar op geplande datums">Niet beschikbaar op geplande datums</option>
     <option value="Geen interesse">Geen interesse</option>
     <option value="Graag overleg nodig">Graag overleg nodig</option>
   </select>
+  <button onclick="submitReden()">Verstuur reden</button>
 </div>
-<button onclick="submitReden()">Verstuur reden</button>
+
+<!-- ✅ Annuleer knop correct gepositioneerd -->
+<button id="annuleerBtn" style="display:none;" onclick="annuleerKeuze()">🔙 Annuleer</button>
+
 
     </div>
 
