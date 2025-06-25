@@ -157,6 +157,9 @@
       <button onclick="submitReden()">Verstuur reden</button>
     </div>
 
+    <!-- ✅ Toegevoegde annuleer knop -->
+<button id="annuleerBtn" style="display:none;" onclick="annuleerKeuze()">🔙 Annuleer</button>
+    
     <div id="resultaat"></div>
 
     <div id="bevestigModal">
@@ -202,17 +205,48 @@
       }
     });
 
-    function kiesActie(type) {
-      document.getElementById("resultaat").innerText = "";
-      if (type === "afspraak") {
-        document.getElementById("afspraakSectie").style.display = "block";
-        document.getElementById("redenKeuze").style.display = "none";
-        loadAvailableDates();
-      } else {
-        document.getElementById("afspraakSectie").style.display = "none";
-        document.getElementById("redenKeuze").style.display = "block";
-      }
-    }
+function kiesActie(type) {
+  document.getElementById("resultaat").innerText = "";
+
+  const afspraakSectie = document.getElementById("afspraakSectie");
+  const redenKeuze = document.getElementById("redenKeuze");
+  const afspraakBtn = document.getElementById("afspraakBtn");
+  const weigerenBtn = document.getElementById("weigerenBtn");
+  const annuleerBtn = document.getElementById("annuleerBtn");
+
+  if (type === "afspraak") {
+    afspraakSectie.style.display = "block";
+    redenKeuze.style.display = "none";
+    afspraakBtn.style.display = "none";
+    weigerenBtn.style.display = "none";
+    annuleerBtn.style.display = "inline-block";
+    loadAvailableDates();
+  } else {
+    afspraakSectie.style.display = "none";
+    redenKeuze.style.display = "block";
+    afspraakBtn.style.display = "none";
+    weigerenBtn.style.display = "none";
+    annuleerBtn.style.display = "inline-block";
+  }
+}
+
+// ✅ Nieuw toegevoegde functie
+function annuleerKeuze() {
+  document.getElementById("afspraakSectie").style.display = "none";
+  document.getElementById("redenKeuze").style.display = "none";
+  document.getElementById("annuleerBtn").style.display = "none";
+
+  // Toon beide hoofdknoppen opnieuw
+  document.getElementById("afspraakBtn").style.display = "inline-block";
+  document.getElementById("weigerenBtn").style.display = "inline-block";
+
+  // Optioneel: wis keuzes
+  document.getElementById("redenSelect").selectedIndex = 0;
+  document.querySelectorAll("#datumCheckboxes input[type='checkbox']").forEach(cb => cb.checked = false);
+  document.getElementById("resultaat").innerText = "";
+}
+
+
 
     function loadAvailableDates() {
       fetch(`${scriptUrl}?action=getAvailableDates&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}`)
