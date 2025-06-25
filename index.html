@@ -40,6 +40,11 @@
     }
 
     .formrow input,
+.formrow textarea {
+  max-width: 400px;
+}
+
+    .formrow input,
     .formrow textarea,
     .formrow select {
       flex: 1;
@@ -141,6 +146,27 @@
   cursor: pointer;
 }
 
+    button {
+  margin-top: 12px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  cursor: pointer;
+  min-width: 200px;
+  border: none;
+  border-radius: 6px;
+}
+
+button.groen {
+  background-color: #28a745;
+  color: white;
+}
+
+button.terug {
+  background-color: #cccccc;
+  color: black;
+}
+
+    
   </style>
 </head>
 <body>
@@ -178,7 +204,7 @@
     <div id="afspraakSectie" style="display:none;">
       <label>Kies één of meer geplande datums:</label>
       <div id="datumCheckboxes"></div>
-      <button type="button" onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
+      <button type="button" class="groen" onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
     </div>
 
 <div id="redenKeuze" style="display:none;">
@@ -188,17 +214,19 @@
     <option value="Geen interesse">Geen interesse</option>
     <option value="Graag overleg nodig">Graag overleg nodig</option>
   </select>
-  <button onclick="submitReden()">Verstuur reden</button>
+  <button class="groen" onclick="submitReden()">Verstuur reden</button>
 </div>
 
 <!-- ✅ Annuleer knop correct gepositioneerd -->
-<button id="annuleerBtn" style="display:none;" onclick="annuleerKeuze()">🔙 Annuleer</button>
+<button id="annuleerBtn" class="terug" style="display:none;" onclick="annuleerKeuze()">🔙 Annuleer</button>
+
 
 
     </div>
 
     <!-- ✅ Toegevoegde annuleer knop -->
-<button id="annuleerBtn" style="display:none;" onclick="annuleerKeuze()">🔙 Annuleer</button>
+<button id="annuleerBtn" class="terug" style="display:none;" onclick="annuleerKeuze()">🔙 Annuleer</button>
+
     
     <div id="resultaat"></div>
 
