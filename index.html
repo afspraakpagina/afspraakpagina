@@ -39,6 +39,27 @@
       font-weight: bold;
     }
 
+@media (max-width: 600px) {
+  .formrow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .formrow label {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .formrow input,
+  .formrow textarea,
+  .formrow select {
+    width: 100%;
+  }
+}
+
+
+
+    
     .formrow input,
 .formrow textarea {
   max-width: 400px;
