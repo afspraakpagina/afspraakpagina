@@ -6,9 +6,18 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
     body { font-family: sans-serif; margin: 20px; }
-    label, button { margin: 10px 0; display: block; }
     #resultaat { margin-top: 15px; font-weight: bold; }
 
+    #datumCheckboxes > div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+#datumCheckboxes input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+    
     #bevestigModal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background-color: rgba(0, 0, 0, 0.5); z-index: 9999;
@@ -41,6 +50,10 @@
   <h2 id="welkomText">Welkom bewoner</h2>
 
   <!-- Velden eerst -->
+
+    <label for="huisnummer">Huisnummer:</label>
+  <input type="text" id="huisnummer" readonly />
+  
   <label for="email">E-mail:</label>
   <input type="email" id="email" />
 
@@ -50,8 +63,7 @@
   <label for="opmerking">Opmerking:</label>
   <textarea id="opmerking" rows="3"></textarea>
 
-  <label for="huisnummer">Huisnummer:</label>
-  <input type="text" id="huisnummer" readonly />
+
 
   <hr />
 
