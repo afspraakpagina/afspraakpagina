@@ -2,51 +2,98 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Afspraak maken</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
-    body { font-family: sans-serif; margin: 20px; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: sans-serif;
+      box-sizing: border-box;
+    }
 
-    /* Formuliervelden netjes uitgelijnd */
-    .form-row {
+    .fullscreen-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 20px;
+      background-color: #f7f7f7;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .formrow {
       display: flex;
       align-items: center;
-      margin-bottom: 10px;
-    }
-    .form-row label {
-      flex: 0 0 150px;
-      font-weight: bold;
-    }
-    .form-row input,
-    .form-row textarea,
-    .form-row select {
-      flex: 1;
-      padding: 6px;
-      font-size: 14px;
+      margin-bottom: 12px;
     }
 
-    /* Checkboxen en datums netjes onder elkaar */
+    .formrow label {
+      width: 140px;
+      font-weight: bold;
+    }
+
+    .formrow input,
+    .formrow textarea,
+    .formrow select {
+      flex: 1;
+      padding: 6px;
+      font-size: 1rem;
+    }
+
     #datumCheckboxes > div {
       display: flex;
       align-items: center;
       margin-bottom: 8px;
     }
+
     #datumCheckboxes input[type="checkbox"] {
-      margin-right: 10px;
+      margin-right: 8px;
     }
 
-    #resultaat { margin-top: 15px; font-weight: bold; }
+    #afspraakSectie, #redenKeuze {
+      margin-top: 20px;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 10px 15px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    #resultaat {
+      margin-top: 15px;
+      font-weight: bold;
+    }
 
     #bevestigModal {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.5); z-index: 9999;
-      justify-content: center; align-items: center;
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
     }
+
     #bevestigModalContent {
-      background: white; padding: 20px; border-radius: 10px; max-width: 400px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
       text-align: center;
     }
-    #bevestigModalContent button { margin: 5px; }
+
+    #bevestigModalContent button {
+      margin: 5px;
+    }
 
     #overlay {
       display: none;
@@ -64,62 +111,64 @@
   </style>
 </head>
 <body>
-  <div id="overlay">Bedankt voor uw reactie</div>
+  <div class="fullscreen-wrapper">
+    <div id="overlay">Bedankt voor uw reactie</div>
 
-  <h2 id="welkomText">Welkom bewoner</h2>
+    <h2 id="welkomText">Welkom bewoner</h2>
 
-  <!-- Formuliervelden -->
-  <div class="form-row">
-    <label for="huisnummer">Huisnummer:</label>
-    <input type="text" id="huisnummer" readonly />
-  </div>
+    <div class="formrow">
+      <label for="huisnummer">Huisnummer:</label>
+      <input type="text" id="huisnummer" readonly />
+    </div>
 
-  <div class="form-row">
-    <label for="email">E-mail:</label>
-    <input type="email" id="email" />
-  </div>
+    <div class="formrow">
+      <label for="email">E-mail:</label>
+      <input type="email" id="email" />
+    </div>
 
-  <div class="form-row">
-    <label for="telefoon">Telefoonnummer:</label>
-    <input type="tel" id="telefoon" />
-  </div>
+    <div class="formrow">
+      <label for="telefoon">Telefoonnummer:</label>
+      <input type="tel" id="telefoon" />
+    </div>
 
-  <div class="form-row">
-    <label for="opmerking">Opmerking:</label>
-    <textarea id="opmerking" rows="3"></textarea>
-  </div>
+    <div class="formrow">
+      <label for="opmerking">Opmerking:</label>
+      <textarea id="opmerking" rows="3"></textarea>
+    </div>
 
-  <hr />
+    <hr />
 
-  <button onclick="kiesActie('afspraak')">✅ Afspraak maken</button>
-  <button onclick="kiesActie('weigeren')">❌ Ik geef geen toestemming</button>
+    <button onclick="kiesActie('afspraak')">✅ Afspraak maken</button>
+    <button onclick="kiesActie('weigeren')">❌ Ik geef geen toestemming</button>
 
-  <div id="afspraakSectie" style="display:none;">
-    <label>Kies één of meer geplande datums:</label>
-    <div id="datumCheckboxes"></div>
-    <button type="button" onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
-  </div>
+    <div id="afspraakSectie" style="display:none;">
+      <label>Kies één of meer geplande datums:</label>
+      <div id="datumCheckboxes"></div>
+      <button type="button" onclick="bevestigAfspraak()">📤 Bevestig en verzend</button>
+    </div>
 
-  <div id="redenKeuze" style="display:none;">
-    <label>Waarom geeft u geen toestemming?</label>
-    <select id="redenSelect">
-      <option value="Niet beschikbaar op geplande datums">Niet beschikbaar op geplande datums</option>
-      <option value="Geen interesse">Geen interesse</option>
-      <option value="Graag overleg nodig">Graag overleg nodig</option>
-    </select>
-    <button onclick="submitReden()">Verstuur reden</button>
-  </div>
+    <div id="redenKeuze" style="display:none;">
+      <label>Waarom geeft u geen toestemming?</label>
+      <select id="redenSelect">
+        <option value="Niet beschikbaar op geplande datums">Niet beschikbaar op geplande datums</option>
+        <option value="Geen interesse">Geen interesse</option>
+        <option value="Graag overleg nodig">Graag overleg nodig</option>
+      </select>
+      <button onclick="submitReden()">Verstuur reden</button>
+    </div>
 
-  <div id="resultaat"></div>
+    <div id="resultaat"></div>
 
-  <div id="bevestigModal">
-    <div id="bevestigModalContent">
-      <p id="modalText">Weet je zeker dat je deze datums wilt bevestigen?</p>
-      <button onclick="verzendBevestiging()">✅ Bevestig</button>
-      <button onclick="sluitModal()">Annuleer</button>
+    <div id="bevestigModal">
+      <div id="bevestigModalContent">
+        <p id="modalText">Weet je zeker dat je deze datums wilt bevestigen?</p>
+        <button onclick="verzendBevestiging()">✅ Bevestig</button>
+        <button onclick="sluitModal()">Annuleer</button>
+      </div>
     </div>
   </div>
 
+  <!-- SCRIPT -->
   <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbyVHrLxedHIuhBdMDD_-OM-mzesKz522FP8purd3y2-SxK9SHiAqF-O3v13WFBrlh4t/exec";
 
@@ -132,10 +181,8 @@
 
     window.addEventListener("load", () => {
       document.getElementById("overlay").style.display = "none";
-      document.body.style.pointerEvents = "auto";
       document.getElementById("afspraakSectie").style.display = "none";
       document.getElementById("redenKeuze").style.display = "none";
-      document.getElementById("resultaat").innerText = "";
       document.getElementById("datumCheckboxes").innerHTML = "";
       document.getElementById("bevestigModal").style.display = "none";
 
@@ -150,17 +197,8 @@
               if (data.email) document.getElementById("email").value = data.email;
               if (data.telefoon) document.getElementById("telefoon").value = data.telefoon;
               if (data.opmerking) document.getElementById("opmerking").value = data.opmerking;
-            } else {
-              document.getElementById("welkomText").innerText =
-                `Welkom bewoner van huisnummer ${huisnummer}`;
             }
-          })
-          .catch(() => {
-            document.getElementById("welkomText").innerText =
-              `Welkom bewoner van huisnummer ${huisnummer}`;
           });
-      } else {
-        document.getElementById("welkomText").innerText = "Welkom bewoner";
       }
     });
 
@@ -184,11 +222,7 @@
           container.innerHTML = "";
           data.forEach(dateString => {
             const dateObj = new Date(dateString);
-            const formatted = dateObj.toLocaleDateString("nl-NL", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric"
-            });
+            const formatted = dateObj.toLocaleDateString("nl-NL", { day: "2-digit", month: "2-digit", year: "numeric" });
 
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
@@ -204,8 +238,7 @@
             div.appendChild(label);
             container.appendChild(div);
           });
-        })
-        .catch(() => alert("Fout bij ophalen van datums."));
+        });
     }
 
     function bevestigAfspraak() {
@@ -238,8 +271,7 @@
 
       fetch(url)
         .then(r => r.text())
-        .then(() => toonBedanktOverlay())
-        .catch(() => alert("Fout bij versturen afspraak."));
+        .then(() => toonBedanktOverlay());
     }
 
     function submitReden() {
@@ -251,8 +283,7 @@
       const opmerking = document.getElementById("opmerking").value.trim();
 
       fetch(`${scriptUrl}?action=declineAppointment&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}&reason=${encodeURIComponent(reden)}&email=${encodeURIComponent(email)}&telefoon=${encodeURIComponent(telefoon)}&opmerking=${encodeURIComponent(opmerking)}`)
-        .then(() => toonBedanktOverlay())
-        .catch(() => alert("Fout bij versturen reden."));
+        .then(() => toonBedanktOverlay());
     }
 
     function toonBedanktOverlay() {
