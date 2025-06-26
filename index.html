@@ -303,7 +303,7 @@ button.terug {
       document.getElementById("bevestigModal").style.display = "none";
 
       if (huisnummer && straat && plaats) {
-        document.getElementById("huisnummer").value = huisnummer;
+        
         fetch(`${scriptUrl}?action=getAddressDetails&plaats=${encodeURIComponent(plaats)}&straat=${encodeURIComponent(straat)}&huisnummer=${encodeURIComponent(huisnummer)}`)
           .then(r => r.json())
           .then(data => {
