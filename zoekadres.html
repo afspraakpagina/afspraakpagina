@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Gegevens invullen</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2em auto; }
+    label { display: block; margin-top: 1em; }
+    input, select, textarea, button {
+      width: 100%; padding: 0.5em; font-size: 1em;
+    }
+    button { margin-top: 1.5em; background-color: #4CAF50; color: white; border: none; }
+  </style>
+</head>
+<body>
+  <h2>Vul je gegevens in</h2>
+
+  <form id="form">
+    <label for="sheet">Project (sheet):</label>
+    <select id="sheet" required></select>
+
+    <label for="plaats">Plaats:</label>
+    <select id="plaats" required disabled></select>
+
+    <label for="straat">Straat:</label>
+    <select id="straat" required disabled></select>
+
+    <label for="huisnummer">Huisnummer:</label>
+    <select id="huisnummer" required disabled></select>
+
+    <label for="email">E-mailadres:</label>
+    <input type="email" id="email" required>
+
+    <label for="telefoon">Telefoonnummer:</label>
+    <input type="tel" id="telefoon" required>
+
+    <label for="opmerking">Opmerking:</label>
+    <textarea id="opmerking"></textarea>
+
+    <button type="submit">Verstuur</button>
+  </form>
+
+  <div id="status" style="margin-top: 1em; color: green;"></div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'; // Vervang door jouw Script URL
+
+    const sheet = document.getElementById("sheet");
+    const plaats = document.getElementById("plaats");
+    const straat = document.getElementById("straat");
+    const huisnummer = document.getElementById("huisnummer");
+
+    // Vul sheets
+    fetch(`${scriptURL}?action=getSheets`)
+      .then(res => res.json())
+      .then(data => {
+        data.forEach(name => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          sheet.appendChild(opt);
+        });
+      });
+
+    sheet.addEventListener("change", () => {
+      plaats.innerHTML = '<option value="">-- Kies plaats --</option>';
+      straat.innerHTML = '<option value="">-- Kies straat --</option>';
+      huisnummer.innerHTML = '<option value="">-- Kies huisnummer --</option>';
+      plaats.disabled = straat.disabled = huisnummer.disabled = true;
+
+      fetch(`${scriptURL}?action=getPlaatsen&sheet=${sheet.value}`)
+        .then(res => res.json())
+        .then(data => {
+          data.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p;
+            opt.textContent = p;
+            plaats.appendChild(opt)
