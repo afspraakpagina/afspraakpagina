@@ -142,11 +142,11 @@
     });
 
 async function submitData() {
-  const melding = document.getElementById("status");
   const projectSelect = document.getElementById("project");
   const plaatsSelect = document.getElementById("plaats");
   const straatSelect = document.getElementById("straat");
   const huisnummerSelect = document.getElementById("huisnummer");
+  const melding = document.getElementById("melding");
 
   melding.textContent = "Even wachten...";
 
@@ -175,9 +175,10 @@ async function submitData() {
 
   } catch (error) {
     console.error("Fout bij verzenden:", error);
-    melding.textContent = "Fout bij verzenden";
+    melding.textContent = "Fout bij verzenden: " + error.message;
   }
 }
+
 
 
 
