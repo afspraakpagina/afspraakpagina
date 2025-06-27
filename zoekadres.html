@@ -13,6 +13,7 @@
     #formSection { display: none; background: #fff; padding: 20px; border-radius: 8px; }
     button { background-color: #0078d7; color: white; border: none; cursor: pointer; }
     button:hover { background-color: #005fa3; }
+    #status { margin-top: 15px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -48,54 +49,61 @@
     <button onclick="submitData()">Verzend gegevens</button>
   </div>
 
-  <p id="melding"></p>
+  <p id="status"></p>
 
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbwzktwoTyG6CI7S4L0VN69Bv69RvO-AVUqaYgehj0llE_b3DJDaIr2SuLJY5Uvud2e1/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbwzktwoTyG6CI7S4L0VN69Bv69RvO-AVUqaYgehj0llE_b3DJDaIr2SuLJY5Uvud2e1/exec"; // <--- Plak hier je Web App URL
 
     let projectData = [];
 
     async function laadProjecten() {
-      const res = await fetch(`${scriptUrl}?action=getSheetNames`);
-      const projecten = await res.json();
-      const select = document.getElementById("project");
-      projecten.forEach(name => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
-      });
+      try {
+        const res = await fetch(`${scriptUrl}?action=getSheetNames`);
+        const projecten = await res.json();
+        const select = document.getElementById("project");
+        projecten.forEach(name => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+      } catch (error) {
+        console.error("Fout bij laden van projecten:", error);
+        document.getElementById("status").textContent = "Kan projecten niet laden.";
+      }
     }
 
     async function laadAdressen(sheet) {
-      const res = await fetch(`${scriptUrl}?action=getSheetDataByName&sheet=${encodeURIComponent(sheet)}`);
-      const data = await res.json();
-      projectData = data;
+      try {
+        const res = await fetch(`${scriptUrl}?action=getSheetDataByName&sheet=${encodeURIComponent(sheet)}`);
+        const data = await res.json();
+        projectData = data;
 
-      // Plaats uniek vullen
-      const plaatsSelect = document.getElementById("plaats");
-      plaatsSelect.innerHTML = '<option value="">-- Selecteer plaats --</option>';
-      const uniekePlaatsen = [...new Set(data.map(r => r.plaats))];
-      uniekePlaatsen.forEach(plaats => {
-        const opt = document.createElement("option");
-        opt.value = plaats;
-        opt.textContent = plaats;
-        plaatsSelect.appendChild(opt);
-      });
+        const plaatsSelect = document.getElementById("plaats");
+        plaatsSelect.innerHTML = '<option value="">-- Selecteer plaats --</option>';
+        const uniekePlaatsen = [...new Set(data.map(r => r.plaats))];
+        uniekePlaatsen.forEach(plaats => {
+          const opt = document.createElement("option");
+          opt.value = plaats;
+          opt.textContent = plaats;
+          plaatsSelect.appendChild(opt);
+        });
 
-      plaatsSelect.disabled = false;
-      document.getElementById("straat").innerHTML = '<option value="">-- Selecteer straat --</option>';
-      document.getElementById("huisnummer").innerHTML = '<option value="">-- Selecteer huisnummer --</option>';
-      document.getElementById("straat").disabled = true;
-      document.getElementById("huisnummer").disabled = true;
-      document.getElementById("formSection").style.display = "none";
+        plaatsSelect.disabled = false;
+        document.getElementById("straat").innerHTML = '<option value="">-- Selecteer straat --</option>';
+        document.getElementById("huisnummer").innerHTML = '<option value="">-- Selecteer huisnummer --</option>';
+        document.getElementById("straat").disabled = true;
+        document.getElementById("huisnummer").disabled = true;
+        document.getElementById("formSection").style.display = "none";
+      } catch (error) {
+        console.error("Fout bij laden van adressen:", error);
+        document.getElementById("status").textContent = "Kan adressen niet laden.";
+      }
     }
 
     document.getElementById("project").addEventListener("change", e => {
       const sheet = e.target.value;
-      if (sheet) {
-        laadAdressen(sheet);
-      }
+      if (sheet) laadAdressen(sheet);
     });
 
     document.getElementById("plaats").addEventListener("change", function () {
@@ -141,46 +149,41 @@
       }
     });
 
-async function submitData() {
-  const projectSelect = document.getElementById("project");
-  const plaatsSelect = document.getElementById("plaats");
-  const straatSelect = document.getElementById("straat");
-  const huisnummerSelect = document.getElementById("huisnummer");
-  const melding = document.getElementById("melding");
+    async function submitData() {
+      const projectSelect = document.getElementById("project");
+      const plaatsSelect = document.getElementById("plaats");
+      const straatSelect = document.getElementById("straat");
+      const huisnummerSelect = document.getElementById("huisnummer");
+      const status = document.getElementById("status");
 
-  melding.textContent = "Even wachten...";
+      status.textContent = "Even wachten...";
 
-  const payload = {
-    action: "saveContactData",
-    sheet: projectSelect.value,
-    plaats: plaatsSelect.value,
-    straat: straatSelect.value,
-    huisnummer: huisnummerSelect.value,
-    telefoon: document.getElementById("telefoon").value,
-    email: document.getElementById("email").value,
-    opmerking: document.getElementById("opmerking").value,
-  };
+      const payload = {
+        action: "saveContactData",
+        sheet: projectSelect.value,
+        plaats: plaatsSelect.value,
+        straat: straatSelect.value,
+        huisnummer: huisnummerSelect.value,
+        telefoon: document.getElementById("telefoon").value,
+        email: document.getElementById("email").value,
+        opmerking: document.getElementById("opmerking").value,
+      };
 
-  try {
-    const res = await fetch(scriptUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+      try {
+        const res = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
-    const text = await res.text();
-    melding.textContent = text;
+        const text = await res.text();
+        status.textContent = text;
 
-  } catch (error) {
-    console.error("Fout bij verzenden:", error);
-    melding.textContent = "Fout bij verzenden: " + error.message;
-  }
-}
-
-
-
+      } catch (error) {
+        console.error("Fout bij verzenden:", error);
+        status.textContent = "Fout bij verzenden: " + error.message;
+      }
+    }
 
     // Init
     laadProjecten();
