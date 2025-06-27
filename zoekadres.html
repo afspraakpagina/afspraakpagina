@@ -176,8 +176,9 @@
           body: JSON.stringify(payload)
         });
 
-        const text = await res.text();
-        status.textContent = text;
+const result = await res.json();
+status.textContent = result.message || result.error || "Onbekend antwoord";
+
 
       } catch (error) {
         console.error("Fout bij verzenden:", error);
