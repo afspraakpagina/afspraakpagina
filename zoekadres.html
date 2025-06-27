@@ -141,35 +141,39 @@
       }
     });
 
-    async function verzendGegevens() {
-      const project = document.getElementById("project").value;
-      const plaats = document.getElementById("plaats").value;
-      const straat = document.getElementById("straat").value;
-      const huisnummer = document.getElementById("huisnummer").value;
-      const email = document.getElementById("email").value;
-      const telefoon = document.getElementById("telefoon").value;
-      const opmerking = document.getElementById("opmerking").value;
+async function submitData() {
+  const melding = document.getElementById("melding");
+  melding.textContent = "Even wachten...";
 
-      const payload = {
-        action: "saveContactData",
-        sheet: project,
-        plaats,
-        straat,
-        huisnummer,
-        email,
-        telefoon,
-        opmerking
-      };
+  const payload = {
+    action: "saveContactData",
+    sheet: projectSelect.value,
+    plaats: plaatsSelect.value,
+    straat: straatSelect.value,
+    huisnummer: huisnummerSelect.value,
+    telefoon: document.getElementById("telefoon").value,
+    email: document.getElementById("email").value,
+    opmerking: document.getElementById("opmerking").value,
+  };
 
-      const res = await fetch(scriptUrl, {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: { "Content-Type": "application/json" }
-      });
+  try {
+    const res = await fetch(scriptUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
 
-      const tekst = await res.text();
-      document.getElementById("status").textContent = tekst;
-    }
+    const text = await res.text();
+    melding.textContent = text;
+
+  } catch (error) {
+    console.error("Fout bij verzenden:", error);
+    melding.textContent = "Fout bij verzenden";
+  }
+}
+
 
     // Init
     laadProjecten();
